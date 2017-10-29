@@ -3,3 +3,8 @@
 build
 *.iml
 local.properties
+app/build
+app/libs
+app/app.iml
+app/build.gradle
+app/proguard-rules.pro

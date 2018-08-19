@@ -12,28 +12,33 @@
 
         <Button
             android:id="@+id/button_lights_front"
-            android:layout_width="wrap_content"
+            android:layout_width="110dp"
             android:layout_height="wrap_content"
-            android:text="Fata(off)"/>
+            android:text="FRONT(OFF)" />
 
         <Button
             android:id="@+id/button_lights_back"
-            android:layout_width="wrap_content"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:text="Spate(off)"/>
+            android:text="BACK(OFF)"/>
 
         <Button
             android:id="@+id/button_horn"
-            android:layout_width="wrap_content"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:text="Claxon(off)"/>
+            android:text="HORN(OFF)"/>
 
         <SeekBar
             android:id="@+id/seekbar_speed"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:max="100"/>
+            android:layout_marginTop="5dp"
+            android:indeterminateOnly="false"
+            android:progressDrawable="@android:drawable/progress_horizontal"
+            android:indeterminateDrawable="@android:drawable/progress_horizontal"
+            android:minHeight="5dp"
+            android:maxHeight="50dp"
+            android:max="109"/>
     </LinearLayout>
 
     <LinearLayout
@@ -53,13 +58,13 @@
                 android:id="@+id/button_forward"
                 android:layout_width="120dp"
                 android:layout_height="100dp"
-                android:text="Inainte"/>
+                android:text="FRONT"/>
 
             <Button
                 android:id="@+id/button_backward"
                 android:layout_width="120dp"
                 android:layout_height="100dp"
-                android:text="Inapoi"/>
+                android:text="BACK"/>
         </LinearLayout>
 
         <LinearLayout
@@ -150,10 +155,10 @@
 
                 <Button
                     android:id="@+id/button_connect"
-                    android:layout_width="wrap_content"
+                    android:layout_width="120dp"
                     android:layout_height="50dp"
                     android:layout_marginTop="40dp"
-                    android:text="Connect"/>
+                    android:text="CONNECT"/>
 
                 <Button
                     android:id="@+id/button_open"
@@ -174,19 +179,21 @@
                 android:layout_width="120dp"
                 android:layout_height="100dp"
                 android:layout_marginTop="15dp"
-                android:text="Stanga"/>
+                android:text="LEFT"/>
 
             <Button
                 android:id="@+id/button_right"
                 android:layout_width="120dp"
                 android:layout_height="100dp"
                 android:layout_marginTop="15dp"
-                android:text="Dreapta"/>
+                android:text="RIGHT"/>
+
             <TextView
                 android:id="@+id/textview_info"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="1,1"/>
+                android:text="1,1"
+                android:textColor="@android:color/white" />
 
         </LinearLayout>
     </LinearLayout>

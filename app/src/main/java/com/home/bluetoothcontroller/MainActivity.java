@@ -1,9 +1,5 @@
 package com.home.bluetoothcontroller;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
@@ -12,11 +8,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.io.IOException;
-import java.util.Set;
-import java.util.UUID;
 
 import static com.home.bluetoothcontroller.Settings.BACKWARD;
 import static com.home.bluetoothcontroller.Settings.BACK_LEFT;
@@ -32,14 +23,11 @@ import static com.home.bluetoothcontroller.Settings.HORN_OFF;
 import static com.home.bluetoothcontroller.Settings.HORN_ON;
 import static com.home.bluetoothcontroller.Settings.LEFT;
 import static com.home.bluetoothcontroller.Settings.RIGHT;
-import static com.home.bluetoothcontroller.Settings.SPEED;
 import static com.home.bluetoothcontroller.Settings.STOP;
-import static com.home.bluetoothcontroller.Settings.STOP_ALL;
 
 public class MainActivity extends AppCompatActivity implements View.OnTouchListener, View.OnClickListener
 {
-    public static final String CAR_NAME = "HC-05";
-    public static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private BluetoothManagement btManager;
 
     private Button buttonLightsFront, buttonLightsBack, buttonHorn;
     private Button buttonLeft, buttonRight;
@@ -49,41 +37,37 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     private TextView textViewInfo;
 
     private boolean isLightsFront = false, isLightsBack = false, isHorn = false;
-    private boolean isConnected = false;
 
     private int x = 1, y = 1;
+    private Byte lastSpeed = null, lastDirection = null;
 
-    private BluetoothAdapter adapter = null;
-    private BluetoothSocket socket = null;
-
-    private final char[][] DIRECTION = new char[][]
+    private final byte[][] DIRECTION = new byte[][]
             {
-                    { FORWARD_LEFT, FORWARD, FORWARD_RIGHT },
-                    { LEFT, STOP, RIGHT },
-                    { BACK_LEFT, BACKWARD, BACK_RIGHT },
+                    {FORWARD_LEFT, FORWARD, FORWARD_RIGHT},
+                    {LEFT, STOP, RIGHT},
+                    {BACK_LEFT, BACKWARD, BACK_RIGHT},
             };
 
     private final String[][] IMAGE_NAME =
             {
-                    { "NV", "N", "NE" },
-                    { "V", "", "E" },
-                    { "SV", "S", "SE" }
+                    {"NV", "N", "NE"},
+                    {"V", "o", "E"},
+                    {"SV", "S", "SE"}
             };
 
     private ImageView[][] IMAGE = null;
 
-    private final int[][] IMAGE_BLUE = new int[][] {
-            { R.drawable.blue_nv, R.drawable.blue_n, R.drawable.blue_ne },
-            { R.drawable.blue_v, 0, R.drawable.blue_e },
-            { R.drawable.blue_sv, R.drawable.blue_s, R.drawable.blue_se }
+    private final int[][] IMAGE_BLUE = new int[][]{
+            {R.drawable.blue_nv, R.drawable.blue_n, R.drawable.blue_ne},
+            {R.drawable.blue_v, 0, R.drawable.blue_e},
+            {R.drawable.blue_sv, R.drawable.blue_s, R.drawable.blue_se}
     };
 
-    private final int[][] IMAGE_RED = new int[][] {
-            { R.drawable.red_nv, R.drawable.red_n, R.drawable.red_ne },
-            { R.drawable.red_v, 0, R.drawable.red_e },
-            { R.drawable.red_sv, R.drawable.red_s, R.drawable.red_se }
+    private final int[][] IMAGE_RED = new int[][]{
+            {R.drawable.red_nv, R.drawable.red_n, R.drawable.red_ne},
+            {R.drawable.red_v, 0, R.drawable.red_e},
+            {R.drawable.red_sv, R.drawable.red_s, R.drawable.red_se}
     };
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -93,38 +77,38 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
 
         createViews();
 
-        adapter = BluetoothAdapter.getDefaultAdapter();
-        buttonOpen.setText(adapter.isEnabled() ? "OFF" : "ON");
+        btManager = new BluetoothManagement(this);
+        buttonOpen.setText(btManager.isAdapterEnabled() ? "OFF" : "ON");
     }
 
     private void createViews()
     {
-        buttonLightsFront = (Button) findViewById(R.id.button_lights_front);
-        buttonLightsBack = (Button) findViewById(R.id.button_lights_back);
-        buttonHorn = (Button) findViewById(R.id.button_horn);
-        buttonLeft = (Button) findViewById(R.id.button_left);
-        buttonRight = (Button) findViewById(R.id.button_right);
-        buttonForward = (Button) findViewById(R.id.button_forward);
-        buttonBackward = (Button) findViewById(R.id.button_backward);
-        buttonConnect = (Button) findViewById(R.id.button_connect);
-        buttonOpen = (Button) findViewById(R.id.button_open);
-        textViewInfo = (TextView) findViewById(R.id.textview_info);
-        seekbarSpeed = (SeekBar) findViewById(R.id.seekbar_speed);
-        IMAGE = new ImageView[][] {
+        buttonLightsFront = findViewById(R.id.button_lights_front);
+        buttonLightsBack = findViewById(R.id.button_lights_back);
+        buttonHorn = findViewById(R.id.button_horn);
+        buttonLeft = findViewById(R.id.button_left);
+        buttonRight = findViewById(R.id.button_right);
+        buttonForward = findViewById(R.id.button_forward);
+        buttonBackward = findViewById(R.id.button_backward);
+        buttonConnect = findViewById(R.id.button_connect);
+        buttonOpen = findViewById(R.id.button_open);
+        textViewInfo = findViewById(R.id.textview_info);
+        seekbarSpeed = findViewById(R.id.seekbar_speed);
+        IMAGE = new ImageView[][]{
                 {
-                        (ImageView) findViewById(R.id.imageview_arrow_00),
-                        (ImageView) findViewById(R.id.imageview_arrow_01),
-                        (ImageView) findViewById(R.id.imageview_arrow_02)
+                        findViewById(R.id.imageview_arrow_00),
+                        findViewById(R.id.imageview_arrow_01),
+                        findViewById(R.id.imageview_arrow_02)
                 },
                 {
-                        (ImageView) findViewById(R.id.imageview_arrow_10),
-                        (ImageView) findViewById(R.id.imageview_arrow_11),
-                        (ImageView) findViewById(R.id.imageview_arrow_12)
+                        findViewById(R.id.imageview_arrow_10),
+                        findViewById(R.id.imageview_arrow_11),
+                        findViewById(R.id.imageview_arrow_12)
                 },
                 {
-                        (ImageView) findViewById(R.id.imageview_arrow_20),
-                        (ImageView) findViewById(R.id.imageview_arrow_21),
-                        (ImageView) findViewById(R.id.imageview_arrow_22)
+                        findViewById(R.id.imageview_arrow_20),
+                        findViewById(R.id.imageview_arrow_21),
+                        findViewById(R.id.imageview_arrow_22)
                 }
         };
 
@@ -133,7 +117,6 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         buttonHorn.setOnClickListener(this);
         buttonConnect.setOnClickListener(this);
         buttonOpen.setOnClickListener(this);
-
 
         buttonLeft.setOnTouchListener(this);
         buttonRight.setOnTouchListener(this);
@@ -145,7 +128,16 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
             {
-                sendData(SPEED[progress / 10]);
+                byte speed = (byte) (progress / 10);
+                if(lastSpeed == null)
+                    lastSpeed = speed;
+                else if(lastSpeed != speed)
+                {
+                    lastSpeed = speed;
+                    btManager.sendData(lastSpeed);
+                }
+
+                MainActivity.this.setTitle(String.format("Speed = %d", (int) speed));
             }
 
             @Override
@@ -228,7 +220,13 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 }
                 break;
         }
-        sendData(DIRECTION[x][y]);
+        if(lastDirection == null)
+            lastDirection = DIRECTION[x][y];
+        else if(lastDirection != DIRECTION[x][y])
+        {
+            lastDirection = DIRECTION[x][y];
+            btManager.sendData(lastDirection);
+        }
         textViewInfo.setText(IMAGE_NAME[x][y]);
         setRed();
         return false;
@@ -241,108 +239,43 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         {
             case R.id.button_lights_front:
                 isLightsFront = !isLightsFront;
-                buttonLightsFront.setText(!isLightsFront ? "FATA(OFF)" : "FATA(ON)");
-                sendData(isLightsFront ? FRONT_LIGHTS_ON : FRONT_LIGHTS_OFF);
+                buttonLightsFront.setText(!isLightsFront ? "FRONT(OFF)" : "FRONT(ON)");
+                btManager.sendData(isLightsFront ? FRONT_LIGHTS_ON : FRONT_LIGHTS_OFF);
                 break;
             case R.id.button_lights_back:
                 isLightsBack = !isLightsBack;
-                buttonLightsBack.setText(!isLightsBack ? "SPATE(OFF)" : "SPATE(ON)");
-                sendData(isLightsFront ? BACK_LIGHTS_ON : BACK_LIGHTS_OFF);
+                buttonLightsBack.setText(!isLightsBack ? "BACK(OFF)" : "BACK(ON)");
+                btManager.sendData(isLightsBack ? BACK_LIGHTS_ON : BACK_LIGHTS_OFF);
                 break;
             case R.id.button_horn:
                 isHorn = !isHorn;
-                buttonHorn.setText(!isHorn ? "CLAXON(OFF)" : "CLAXON(ON)");
-                sendData(isHorn ? HORN_ON : HORN_OFF);
+                buttonHorn.setText(!isHorn ? "HORN(OFF)" : "HORN(ON)");
+                btManager.sendData(isHorn ? HORN_ON : HORN_OFF);
                 break;
             case R.id.button_open:
-                if (buttonOpen.getText().equals("OFF"))
+                if (!btManager.isAdapterEnabled())
                 {
-                    adapter.disable();
-                    buttonOpen.setText("ON");
-                    try
-                    {
-                        if (socket != null)
-                            socket.close();
-                    }
-                    catch (IOException ioe)
-                    {
-                        Toast.makeText(getApplicationContext(), "Socket error on close", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                else if (buttonOpen.getText().equals("ON"))
-                {
-                    if (!adapter.isEnabled())
-                    {
-                        Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                        startActivityForResult(intent, 1);
-                        while (!adapter.isEnabled()) ;
-                        Toast.makeText(getApplicationContext(), "Bluetooth turned on", Toast.LENGTH_SHORT).show();
-                    }
-                    else
-                        Toast.makeText(getApplicationContext(), "Bluetooth already turned on", Toast.LENGTH_SHORT).show();
+                    btManager.enableBluetooth();
                     buttonOpen.setText("OFF");
+                }
+                else //adapter enabled
+                {
+                    btManager.disableBluetooth();
+                    buttonOpen.setText("ON");
                 }
                 break;
             case R.id.button_connect:
-                if (!isConnected)
+                if (btManager.isConnected())
                 {
-                    Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
-                    if (pairedDevices.size() > 0)
-                    {
-                        for (BluetoothDevice device : pairedDevices)
-                        {
-                            if (device.getName().equals(CAR_NAME))
-                            {
-                                try
-                                {
-                                    BluetoothDevice car = adapter.getRemoteDevice(device.getAddress());
-                                    socket = car.createInsecureRfcommSocketToServiceRecord(myUUID);
-                                    adapter.cancelDiscovery();
-                                    socket.connect();
-                                    sendData(STOP_ALL);
-                                    Toast.makeText(getApplicationContext(), "Connected to HC-05", Toast.LENGTH_SHORT).show();
-                                    break;
-                                }
-                                catch (IOException ioe)
-                                {
-                                    Toast.makeText(getApplicationContext(), "Socket error on connect", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        }
-                    }
-                    isConnected = true;
+                    btManager.disconnect();
+                    buttonConnect.setText("CONNECT");
+                }
+                else
+                {
+                    btManager.connect();
                     buttonConnect.setText("DISCONNECT");
                 }
-                else // if(isConnected)
-                {
-                    if (socket != null)
-                    {
-                        try
-                        {
-                            socket.close();
-                            isConnected = false;
-                            buttonConnect.setText("CONNECT");
-                        }
-                        catch (IOException ioe)
-                        {
-                            Toast.makeText(getApplicationContext(), "Socket error on disconnect", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
                 break;
-        }
-    }
-
-    private void sendData(char data)
-    {
-        try
-        {
-            if (socket != null)
-                socket.getOutputStream().write(String.valueOf(data).getBytes());
-        }
-        catch (IOException ioe)
-        {
-            Toast.makeText(getApplicationContext(), "Socket error on send", Toast.LENGTH_SHORT).show();
         }
     }
 }

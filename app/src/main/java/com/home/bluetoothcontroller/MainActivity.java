@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 },
                 {
                         findViewById(R.id.imageview_arrow_10),
-                        findViewById(R.id.imageview_arrow_11),
+                        null,
                         findViewById(R.id.imageview_arrow_12)
                 },
                 {
@@ -272,8 +272,8 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 }
                 else
                 {
-                    btManager.connect();
-                    buttonConnect.setText("DISCONNECT");
+                    if(btManager.connect())
+                        buttonConnect.setText("DISCONNECT");
                 }
                 break;
         }

@@ -20,12 +20,10 @@ import java.util.UUID;
 public class BluetoothManagement
 {
     private static final String OTHER_DEVICE_NAME = "HC-05";
-//    private static final String OTHER_DEVICE_NAME = "DESKTOP-E056U03";
-//    private static final String OTHER_DEVICE_NAME = "iPhone";
     public static final UUID BLUETOOTH_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     private MainActivity activity;
-    private BluetoothAdapter bluetoothAdapter = null;
+    private BluetoothAdapter bluetoothAdapter;
     private BluetoothSocket bluetoothSocket = null;
     private BluetoothDevice bluetoothDevice = null;
 
